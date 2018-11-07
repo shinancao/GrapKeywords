@@ -3,18 +3,31 @@
 
 import urllib.request
 import re
+import os
 
 from urllib.parse import urlparse
 import os.path
 
-
-def getCategorysUrl(companyUrl):
+#获得所有分组列表的url
+def getProductListUrls(companyUrl):
     allCategoryUrl = companyUrl + "/productlist.html"
     respData = getResponseData(allCategoryUrl)
-    listUrl = re.findall(r'<ul class="productgroup-list">')
+    results = []
 
 
-def getAllProductsUrl(productListUrl):
+    firstUrls = re.findall(r'<li class=" first">\\n\\t\\t\\t<a href="(.*?)" title="', str(respData))
+    subFirstUrls = re.findall(r'<li class="first"><a href="(.*?)" title="', str(respData))
+    subUrls = re.findall(r'<li class=""><a href="(.*?)" title="', str(respData))
+    listUrls = re.findall(r'<li class=" ">\\n\\t\\t\\t<a href="(.*?)" title="', str(respData))
+    for urls in (firstUrls, subFirstUrls, subUrls, listUrls):
+        if len(urls) > 0:
+            for url in urls:
+                results.append(companyUrl + url)
+
+    return  results
+
+#获得一个分类下所有商品详情的url
+def getProductDetailUrls(productListUrl):
     parsedUri = urlparse(productListUrl)
     schemeAndProtocol = "{uri.scheme}://{uri.netloc}/".format(uri=parsedUri)
     paths = "{uri.path}".format(uri=parsedUri).split("/")
@@ -78,35 +91,34 @@ def getFileName(companyUrl):
 """开始处理"""
 print("Enter the company url:")
 
-#companyUrl = input().strip()
+companyUrl = input().strip()
 
 print("Doing ......")
 
 results = ""
 
-productsUrl = getAllProductsUrl("https://younalchina.en.alibaba.com/productgrouplist-804089749/WPC_Wall_Panel.html")
-print(productsUrl)
+productUrls = getProductListUrls(companyUrl)
 
-"""
-for url in productsUrl[0:4]:
-    dict = getKeywordsAndTitle(url)
-    if not (dict is None):
-        results += "title:\n"
-        results += dict["title"] + "\n"
-        results += "keywords:\n"
-        results += dict["keywords"] + "\n\n"
+for productUrl in productUrls:
+    detailUrls = getProductDetailUrls(productUrl)
+    #一个产品列表生成一个文件
+    results = ""
+    for url in detailUrls:
+        dict = getKeywordsAndTitle(url)
+        if not (dict is None):
+            results += "title:\n"
+            results += dict["title"] + "\n"
+            results += "keywords:\n"
+            results += dict["keywords"] + "\n\n"
+    filename = getFileName(productUrl)
 
-
-filename = getFileName(companyUrl)
-
-f = open(filename, "w")
-f.write(results)
-f.close()
-
-import os
+    f = open(filename, "w")
+    f.write(results)
+    f.close()
+    print(os.path.realpath(filename))
 
 print("Done!")
-print("Saved in file: " + os.path.realpath(filename)) """
+
 
 
 
