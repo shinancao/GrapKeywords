@@ -10,7 +10,13 @@ import os.path
 
 #获得所有分组列表的url
 def getProductListUrls(companyUrl):
-    allCategoryUrl = companyUrl + "/productlist.html"
+    allCategoryUrl = companyUrl
+    if "/productlist.html" not in companyUrl:
+        allCategoryUrl = companyUrl + "/productlist.html"
+
+    if "https://" not in companyUrl or "http://" not in companyUrl:
+        allCategoryUrl = "https://" + allCategoryUrl
+
     respData = getResponseData(allCategoryUrl)
     results = []
 
@@ -78,6 +84,7 @@ def getResponseData(htmlUrl):
     resp = urllib.request.urlopen(req)
     respData = resp.read()
     return respData
+
 
 import time
 def getFileName(companyUrl):
