@@ -14,7 +14,7 @@ def getProductListUrls(companyUrl):
     if "/productlist.html" not in companyUrl:
         allCategoryUrl = companyUrl + "/productlist.html"
 
-    if "https://" not in companyUrl or "http://" not in companyUrl:
+    if "https://" not in companyUrl and "http://" not in companyUrl:
         allCategoryUrl = "https://" + allCategoryUrl
 
     respData = getResponseData(allCategoryUrl)
@@ -44,6 +44,7 @@ def getProductDetailUrls(productListUrl):
     productsUrl = []
 
     while flag:
+        print("index:" + str(index))
         pageUrl = schemeAndProtocol + temp[0] + "-" + temp[1] + "-" + str(index) + "/" + paths[2]
         respData = getResponseData(pageUrl)
         if "No matching results." not in str(respData):
@@ -98,19 +99,23 @@ def getFileName(companyUrl):
 """开始处理"""
 print("Enter the company url:")
 
-companyUrl = input().strip()
+#companyUrl = input().strip()
+#companyUrl = "https://sysun.en.alibaba.com/productgrouplist-806535891/1_SPC_Flooring.html"
 
 print("Doing ......")
 
-results = ""
+#productUrls = getProductListUrls(companyUrl)
 
-productUrls = getProductListUrls(companyUrl)
+productUrls = ["https://sysun.en.alibaba.com/productgrouplist-806535891/1_SPC_Flooring.html"]
+
 
 for productUrl in productUrls:
     detailUrls = getProductDetailUrls(productUrl)
     #一个产品列表生成一个文件
     results = ""
+    print(detailUrls)
     for url in detailUrls:
+        print(url)
         dict = getKeywordsAndTitle(url)
         if not (dict is None):
             results += "title:\n"
@@ -123,6 +128,7 @@ for productUrl in productUrls:
     f.write(results)
     f.close()
     print(os.path.realpath(filename))
+
 
 print("Done!")
 
