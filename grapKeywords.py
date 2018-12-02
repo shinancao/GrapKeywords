@@ -117,29 +117,30 @@ def getFileName(companyUrl):
 """开始处理"""
 print("Enter the company url:")
 
-companyUrl = input().strip()
+inputStr = input().strip()
+companyUrls = inputStr.split(",")
 
-# for companyUrl in companyUrls:
-#     productUrls = getProductListUrls(companyUrl)
-#
-#     for productUrl in productUrls:
-#         detailUrls = getProductDetailUrls(productUrl)
-#         # 一个产品列表生成一个文件
-#         results = ""
-#         for url in detailUrls:
-#             dict = getKeywordsAndTitle(url)
-#             if not (dict is None):
-#                 results += "title:\n"
-#                 results += dict["title"] + "\n"
-#                 results += "keywords:\n"
-#                 results += dict["keywords"] + "\n\n"
-#
-#         if len(results) > 0:
-#             filename = getFileName(productUrl)
-#             f = open(filename, "w")
-#             f.write(results)
-#             f.close()
-#             print(os.path.realpath(filename))
+for companyUrl in companyUrls:
+    productUrls = getProductListUrls(companyUrl)
+
+    for productUrl in productUrls:
+        detailUrls = getProductDetailUrls(productUrl)
+        # 一个产品列表生成一个文件
+        results = ""
+        for url in detailUrls:
+            dict = getKeywordsAndTitle(url)
+            if not (dict is None):
+                results += "title:\n"
+                results += dict["title"] + "\n"
+                results += "keywords:\n"
+                results += dict["keywords"] + "\n\n"
+
+        if len(results) > 0:
+            filename = getFileName(productUrl)
+            f = open(filename, "w")
+            f.write(results)
+            f.close()
+            print(os.path.realpath(filename))
 
 
 print("Done!")
