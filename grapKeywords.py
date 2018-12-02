@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
 import urllib.request
@@ -14,7 +14,7 @@ def getProductListUrls(companyUrl):
     if "/productlist.html" not in companyUrl:
         allCategoryUrl = companyUrl + "/productlist.html"
 
-    if "https://" not in companyUrl or "http://" not in companyUrl:
+    if "https://" not in companyUrl and "http://" not in companyUrl:
         allCategoryUrl = "https://" + allCategoryUrl
 
     respData = getResponseData(allCategoryUrl)
@@ -67,24 +67,43 @@ def getProductDetailUrls(productListUrl):
 def getKeywordsAndTitle(productUrl):
     respData = getResponseData(productUrl)
 
-    keywordsStr = re.search(r'<meta name="keywords" content="(.*?)"/>', str(respData))
-    keywords = keywordsStr.group(1).replace("High Quality ", "").split(",")
+    if not (respData is None):
+        keywordsStr = re.search(r'<meta name="keywords" content="(.*?)"/>', str(respData))
+        keywords = keywordsStr.group(1).replace("High Quality ", "").split(",")
 
-    if len(keywords) > 1:
-        dict = {"title": keywords[0].strip()}
-        keywords.pop(0)
+        if len(keywords) > 1:
+            dict = {"title": keywords[0].strip()}
+            keywords.pop(0)
 
-        dict["keywords"] = ",".join(keywords).strip()
-        return dict
+            dict["keywords"] = ",".join(keywords).strip()
+            return dict
+        else:
+            return None
     else:
-        return None
+        return  None
+
+
+from urllib.error import HTTPError, URLError
+import socket
 
 def getResponseData(htmlUrl):
-    req = urllib.request.Request(htmlUrl)
-    resp = urllib.request.urlopen(req)
-    respData = resp.read()
-    return respData
-
+    try:
+        req = urllib.request.Request(htmlUrl)
+        resp = urllib.request.urlopen(req, timeout=20)
+        respData = resp.read()
+        return respData
+    except HTTPError as error:
+        print('Data not retrieved because %s\nURL: %s', error, htmlUrl)
+        return None
+    except URLError as error:
+        if isinstance(error.reason, socket.timeout):
+            print('socket timed out - URL %s', htmlUrl)
+        else:
+            print('some other error happened')
+        return None
+    except socket.timeout:
+        print("socket timeout: " + htmlUrl)
+        return None
 
 import time
 def getFileName(companyUrl):
@@ -100,29 +119,28 @@ print("Enter the company url:")
 
 companyUrl = input().strip()
 
-print("Doing ......")
+# for companyUrl in companyUrls:
+#     productUrls = getProductListUrls(companyUrl)
+#
+#     for productUrl in productUrls:
+#         detailUrls = getProductDetailUrls(productUrl)
+#         # 一个产品列表生成一个文件
+#         results = ""
+#         for url in detailUrls:
+#             dict = getKeywordsAndTitle(url)
+#             if not (dict is None):
+#                 results += "title:\n"
+#                 results += dict["title"] + "\n"
+#                 results += "keywords:\n"
+#                 results += dict["keywords"] + "\n\n"
+#
+#         if len(results) > 0:
+#             filename = getFileName(productUrl)
+#             f = open(filename, "w")
+#             f.write(results)
+#             f.close()
+#             print(os.path.realpath(filename))
 
-results = ""
-
-productUrls = getProductListUrls(companyUrl)
-
-for productUrl in productUrls:
-    detailUrls = getProductDetailUrls(productUrl)
-    #一个产品列表生成一个文件
-    results = ""
-    for url in detailUrls:
-        dict = getKeywordsAndTitle(url)
-        if not (dict is None):
-            results += "title:\n"
-            results += dict["title"] + "\n"
-            results += "keywords:\n"
-            results += dict["keywords"] + "\n\n"
-    filename = getFileName(productUrl)
-
-    f = open(filename, "w")
-    f.write(results)
-    f.close()
-    print(os.path.realpath(filename))
 
 print("Done!")
 
